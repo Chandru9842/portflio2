@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Google AI Studio App</title>
+    <script>
+      const isBenignError = (message, stack) => {
+        const msg = String(message || '').toLowerCase();
+        const stk = String(stack || '').toLowerCase();
+        return msg.includes('websocket') || 
+               msg.includes('closed without opened') || 
+               msg.includes('failed to connect') ||
+               stk.includes('websocket') ||
+               stk.includes('closed without opened') ||
+               stk.includes('hmr') ||
+               stk.includes('vite/dist/client');
+      };
+
+      window.addEventListener('error', (event) => {
+        if (isBenignError(event.message, event.error?.stack)) {
+          return;
+        }
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = '#1a0505';
+        overlay.style.color = '#ff6b6b';
+        overlay.style.padding = '24px';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.fontSize = '14px';
+        overlay.style.zIndex = '999999';
+        overlay.style.overflow = 'auto';
+        overlay.style.whiteSpace = 'pre-wrap';
+        overlay.innerHTML = `
+          <h1 style="font-size: 20px; color: #ff4747; margin-bottom: 16px; font-weight: bold;">🚨 Early Runtime Error Detected</h1>
+          <div style="font-weight: bold; margin-bottom: 8px;">Unhandled Error: ${event.message}</div>
+          ${event.error?.stack ? `<pre style="background-color: #2a0a0a; padding: 16px; border-radius: 4px; border: 1px solid #4a1515; overflow-x: auto; font-size: 12px; color: #fca5a5;">${event.error.stack}</pre>` : ''}
+        `;
+        document.body.appendChild(overlay);
+      });
+
+      window.addEventListener('unhandledrejection', (event) => {
+        const reason = event.reason;
+        const message = reason instanceof Error ? reason.message : String(reason);
+        const stack = reason instanceof Error ? reason.stack : '';
+        if (isBenignError(message, stack)) {
+          return;
+        }
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = '#1a0505';
+        overlay.style.color = '#ff6b6b';
+        overlay.style.padding = '24px';
+        overlay.style.fontFamily = 'monospace';
+        overlay.style.fontSize = '14px';
+        overlay.style.zIndex = '999999';
+        overlay.style.overflow = 'auto';
+        overlay.style.whiteSpace = 'pre-wrap';
+        overlay.innerHTML = `
+          <h1 style="font-size: 20px; color: #ff4747; margin-bottom: 16px; font-weight: bold;">🚨 Early Promise Rejection Detected</h1>
+          <div style="font-weight: bold; margin-bottom: 8px;">Unhandled Rejection: ${message}</div>
+          ${stack ? `<pre style="background-color: #2a0a0a; padding: 16px; border-radius: 4px; border: 1px solid #4a1515; overflow-x: auto; font-size: 12px; color: #fca5a5;">${stack}</pre>` : ''}
+        `;
+        document.body.appendChild(overlay);
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
